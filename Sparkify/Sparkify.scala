@@ -1,68 +1,12 @@
-/** Basic Data Exploration for a Music Streaming App called Sparkify using Apache Spark
- *
- * Input:
- * Logs of user activity with 10k records
- *
- * Output (Example):
- *
- * Songs Played by Hour of Day
- * +-----------+-----+
- * |Hour of Day|count|
- * +-----------+-----+
- * |          0|  484|
- * |          1|  430|
- * |          2|  362|
- * |          3|  295|
- * |          4|  257|
- * |          5|  248|
- * |          6|  369|
- * |          7|  375|
- * |          8|  456|
- * |          9|  454|
- * |         10|  382|
- * |         11|  302|
- * |         12|  352|
- * |         13|  276|
- * |         14|  348|
- * |         15|  358|
- * |         16|  375|
- * |         17|  249|
- * |         18|  216|
- * |         19|  228|
- * |         20|  251|
- * |         21|  339|
- * |         22|  462|
- * |         23|  479|
- * +-----------+-----+
- *
- * Schema:
- * root
- * |-- artist: string (nullable = true)
- * |-- auth: string (nullable = true)
- * |-- firstName: string (nullable = true)
- * |-- gender: string (nullable = true)
- * |-- itemInSession: long (nullable = true)
- * |-- lastName: string (nullable = true)
- * |-- length: double (nullable = true)
- * |-- level: string (nullable = true)
- * |-- location: string (nullable = true)
- * |-- method: string (nullable = true)
- * |-- page: string (nullable = true)
- * |-- registration: long (nullable = true)
- * |-- sessionId: long (nullable = true)
- * |-- song: string (nullable = true)
- * |-- status: long (nullable = true)
- * |-- ts: long (nullable = true)
- * |-- userAgent: string (nullable = true)
- * |-- userId: string (nullable = true)
- *
- * Total: 10000
+/**
+ * Basic Data Exploration for a Music Streaming App called Sparkify using Apache Spark
  */
 
 package com.delvinlow.sparkpractices.Sparkify
 
 import org.apache.spark.sql.SparkSession
 import org.apache.log4j._
+import org.apache.spark.sql.expressions.Window
 import org.apache.spark.sql.functions._
 import org.apache.spark.sql.types.{DateType, IntegerType, LongType, TimestampType}
 
@@ -82,7 +26,7 @@ object Sparkify {
 
     // Data Exploration
     val userLogs = spark.read.json("./src/res/data/sparkify_log_small.json").cache()
-//    userLogs.show(10)
+    userLogs.show(10)
 
     // Calculate Statistics by Hour
     val withTimestamps = userLogs
@@ -97,8 +41,30 @@ object Sparkify {
       sort("Hour of Day")
     countByHours.show(24)
 
+    // See all distinct users id to identify whether there are any invalid users
+    val distinctUsers = userLogs.select("userId").dropDuplicates().sort("userID")
+    distinctUsers.show
+
+    // Filter userIDs that are empty strings
+    val validUsers = userLogs.where("userId <> ''")
+    validUsers.select("userId").dropDuplicates().sort("userID").show()
+
     userLogs.printSchema()
     println(f"Total: ${userLogs.count}")
+
+    // Use Window function to label records from a user into phase 1 (paid) and phase 0 (after downgrading to free), separated by an event (i.e. Submit Downgrade)
+    // Before labelling (records of one user):
+    val userKellyLogs = userLogs.select("userId", "firstName", "page", "level", "ts", "song").where("userId == 1138")
+    userKellyLogs.show()
+
+    val userLogsWithDowngrade = validUsers.withColumn("downgraded", when(expr("page == 'Submit Downgrade'"), 1).otherwise(0))
+    userLogsWithDowngrade.show()
+    val windowDowngrade = Window.partitionBy("userID").orderBy(desc("ts")).rowsBetween(Window.unboundedPreceding, Window.currentRow)
+    val userLogsByPhase = userLogsWithDowngrade.withColumn("Phase", sum("downgraded").over(windowDowngrade))
+    userLogsByPhase.show()
+
+    // After labelling (records of one user):
+    userLogsByPhase.select("userId", "firstName", "page", "level", "song", "ts", "phase").where("userId == 1138").orderBy("ts").show(100)
 
     spark.close()
   }
