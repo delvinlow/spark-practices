@@ -13,6 +13,7 @@ Users logs have been captured to analyze user behaviour by the Sparkify team to 
  
 ## Schema:
 
+```
  root
  |-- artist: string (nullable = true)
  |-- auth: string (nullable = true)
@@ -33,11 +34,13 @@ Users logs have been captured to analyze user behaviour by the Sparkify team to 
  |-- userAgent: string (nullable = true)
  |-- userId: string (nullable = true)
   Total: 10000  
+```
   
 ## Group By Functions
 
 Suppose we want to find out which is the most popular time of the day that most users are using Sparkify.
 
+```
  +-----------+-----+
  |Hour of Day|count|
  +-----------+-----+
@@ -66,12 +69,13 @@ Suppose we want to find out which is the most popular time of the day that most 
  |         22|  462|
  |         23|  479|
  +-----------+-----+
- 
+```
 
 ## Window Aggregation
 
 Users of Sparkify can choose to downgrade from paid tier to free tier. We want to use this downgrade event to label records into different phases, specifically 1 for before downgrade and 0 for after downgrading for further analysis.
 
+```
  +------+---------+----------------+-----+--------------------+-------------+-----+
 |userId|firstName|            page|level|                song|           ts|phase|
 +------+---------+----------------+-----+--------------------+-------------+-----+
@@ -98,3 +102,4 @@ Users of Sparkify can choose to downgrade from paid tier to free tier. We want t
 |  1138|    Kelly|            Home| free|                null|1513821430284|    0|
 |  1138|    Kelly|        NextSong| free|Grenouilles Manti...|1513833144284|    0|
 +------+---------+----------------+-----+--------------------+-------------+-----+
+```
