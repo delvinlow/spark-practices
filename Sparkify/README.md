@@ -1,15 +1,15 @@
-This is a Basic Data Exploration Exercise for a mock Music Streaming App called Sparkify using Apache Spark in Scala
+This is a Basic Data Exploration Exercise for a mock Music Streaming App called Sparkify using Apache Spark in Scala.
 
 Users can listen to music for free but with advertisements on Sparkify. Alternatively, they can also subscribe to the premium ad-free tier.
 
 Users logs have been captured to analyze user behaviour by the Sparkify team to better tailor the Sparkify app for customers.
 
 **Input:**
- Logs of user activity with 10k records (to be placed in src/res/data folder)
+  - Logs of user activity with 10k records (to be placed in src/res/data folder)
  
 **Output (Example):**
-  Songs Played by Hour of Day
-  Labelling of records based on event per user
+  - Songs Played by Hour of Day
+  - Labelling of records based on event per user
  
 ## Schema:
 
